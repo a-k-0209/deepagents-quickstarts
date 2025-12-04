@@ -21,7 +21,7 @@ from .middleware import MemoryInjectionMiddleware, PostInterruptMemoryMiddleware
 from .schemas import EmailAssistantState
 from .tools import get_tools
 from .utils import format_email_markdown, parse_email, get_memory
-from .prompts import agent_system_prompt_hitl_memory, default_background, default_response_preferences, default_cal_preferences, default_triage_instructions
+from .prompts import agent_system_prompt_hitl_memory, default_user_profile
 
 def create_email_assistant(for_deployment=False):
     """Create and configure the email assistant agent.
@@ -89,15 +89,12 @@ def create_email_assistant(for_deployment=False):
         "Question": {"component_name": "question"},
     })
 
-    # Build system prompt with default preferences
-    # Note: Memory-based preferences can be accessed via the store in middleware
+    # Build system prompt with default user profile
+    # Note: Memory-based profile can be accessed via the store in middleware
     tools_prompt = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools])
     system_prompt = agent_system_prompt_hitl_memory.format(
         tools_prompt=tools_prompt,
-        background=default_background,
-        triage_instructions=default_triage_instructions,
-        response_preferences=default_response_preferences,
-        cal_preferences=default_cal_preferences,
+        user_profile=default_user_profile,
     )
 
     # Create agent with deepagents library

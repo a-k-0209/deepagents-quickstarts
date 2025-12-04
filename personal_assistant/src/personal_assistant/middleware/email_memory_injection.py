@@ -7,21 +7,17 @@ from langgraph.store.base import BaseStore
 
 from ..prompts import (
     agent_system_prompt_hitl_memory,
-    default_background,
-    default_cal_preferences,
-    default_response_preferences,
-    default_triage_instructions,
+    default_user_profile,
 )
 from ..tools.default.prompt_templates import HITL_MEMORY_TOOLS_PROMPT
 from ..utils import aget_memory, get_memory
 
 
 class MemoryInjectionMiddleware(AgentMiddleware):
-    """Middleware for injecting memory preferences into system prompts.
+    """Middleware for injecting user profile memory into system prompts.
 
-    This middleware fetches memory from three namespaces (triage_preferences,
-    response_preferences, cal_preferences) and injects them into the system prompt
-    before each LLM call.
+    This middleware fetches the unified user profile from a single namespace
+    (user_profile) and injects it into the system prompt before each LLM call.
 
     Args:
         store: LangGraph store for persistent memory
@@ -53,36 +49,22 @@ class MemoryInjectionMiddleware(AgentMiddleware):
     ) -> ModelResponse:
         """Inject memory into system prompt before LLM call.
 
-        Fetches memory from the three namespaces (triage_preferences, response_preferences,
-        cal_preferences) and injects them into the system prompt.
+        Fetches unified user profile from single namespace and injects into system prompt.
         """
         # Get store (from runtime in deployment, or from self in local testing)
         store = self._get_store(request.runtime if hasattr(request, "runtime") else None)
 
-        # Fetch memory from store
-        triage_prefs = get_memory(
+        # Fetch user profile from store
+        user_profile = get_memory(
             store,
-            ("email_assistant", "triage_preferences"),
-            default_triage_instructions,
-        )
-        response_prefs = get_memory(
-            store,
-            ("email_assistant", "response_preferences"),
-            default_response_preferences,
-        )
-        cal_prefs = get_memory(
-            store,
-            ("email_assistant", "cal_preferences"),
-            default_cal_preferences,
+            ("email_assistant", "user_profile"),
+            default_user_profile,
         )
 
         # Format system prompt with memory
         memory_prompt = agent_system_prompt_hitl_memory.format(
             tools_prompt=HITL_MEMORY_TOOLS_PROMPT,
-            background=default_background,
-            triage_instructions=triage_prefs,
-            response_preferences=response_prefs,
-            cal_preferences=cal_prefs,
+            user_profile=user_profile,
         )
 
         # Append memory prompt to existing system prompt
@@ -109,30 +91,17 @@ class MemoryInjectionMiddleware(AgentMiddleware):
         # Get store (from runtime in deployment, or from self in local testing)
         store = self._get_store(request.runtime if hasattr(request, "runtime") else None)
 
-        # Fetch memory from store (using async methods)
-        triage_prefs = await aget_memory(
+        # Fetch user profile from store (using async methods)
+        user_profile = await aget_memory(
             store,
-            ("email_assistant", "triage_preferences"),
-            default_triage_instructions,
-        )
-        response_prefs = await aget_memory(
-            store,
-            ("email_assistant", "response_preferences"),
-            default_response_preferences,
-        )
-        cal_prefs = await aget_memory(
-            store,
-            ("email_assistant", "cal_preferences"),
-            default_cal_preferences,
+            ("email_assistant", "user_profile"),
+            default_user_profile,
         )
 
         # Format system prompt with memory
         memory_prompt = agent_system_prompt_hitl_memory.format(
             tools_prompt=HITL_MEMORY_TOOLS_PROMPT,
-            background=default_background,
-            triage_instructions=triage_prefs,
-            response_preferences=response_prefs,
-            cal_preferences=cal_prefs,
+            user_profile=user_profile,
         )
 
         # Append memory prompt to existing system prompt

@@ -109,8 +109,8 @@ When the email assistant interrupts (for `write_email`, `schedule_meeting`, or `
 
 **Memory Learning:**
 
-UI responses automatically update the assistant's memory profiles:
-- **Reject** `write_email` or `schedule_meeting` → Updates `triage_preferences` (classification rules) using optional rejection message for better context
+UI responses automatically update the assistant's unified user profile:
+- **Reject** ANY tool (`write_email`, `schedule_meeting`, `Question`) → Updates `user_profile` using optional rejection message for better context
 - **Approve** → No memory update (agent did the right thing)
 
 See the [Memory System](#memory-system) section below for detailed logic and examples.
@@ -220,34 +220,44 @@ interrupt_on_config = {
 
 The assistant maintains a persistent memory profile that learns from user interactions during HITL interrupts. The profile is stored in a LangGraph Store namespace and automatically updates based on user decisions.
 
-#### Memory Namespaces
+#### Memory Profile
 
-**1. `("email_assistant", "triage_preferences")`** - Email Classification Rules
-- **Purpose**: Learns when to respond vs. notify vs. ignore emails
-- **Updated by**: REJECT decisions on `write_email` or `schedule_meeting`
-- **Update logic**: When user rejects a draft, it means the email shouldn't have been classified as "respond"
-- **Example**: "Emails from newsletter@company.com should be ignored, not responded to"
+**Single namespace:** `("email_assistant", "user_profile")`
+
+The assistant maintains a unified user profile containing:
+1. **User context**: Identity and role information
+2. **Triage criteria**: When to respond/notify/ignore emails
+3. **Response style**: How to draft emails and handle different scenarios
+4. **Meeting scheduling**: Calendar and scheduling preferences
+
+**Storage:**
+- Profile size: 15-25 lines of moderate detail
+- Updated by: ANY tool rejection (not just specific tools)
+- Update logic: LLM analyzes rejection and updates relevant profile section
+- Preserves unrelated information during updates
 
 #### Memory Update Trigger Matrix
 
-| User Decision | Tool Call | Memory Namespace Updated | Update Reason |
-|---------------|-----------|--------------------------|---------------|
-| **REJECT** | `write_email` | `triage_preferences` | Email shouldn't have been classified as "respond" |
-| **REJECT** | `schedule_meeting` | `triage_preferences` | Meeting request shouldn't have been classified as "respond" |
+| User Decision | Tool Call | Profile Section Updated | Update Reason |
+|---------------|-----------|-------------------------|---------------|
+| **REJECT** | `write_email` | Triage and/or response style | Email shouldn't have been drafted or style was wrong |
+| **REJECT** | `schedule_meeting` | Triage and/or scheduling | Meeting shouldn't have been scheduled or timing was wrong |
+| **REJECT** | `Question` | Triage and/or response style | Question shouldn't have been asked |
 | **APPROVE** | any tool | _(none)_ | No update needed - agent did the right thing |
 
 #### How Memory Updates Work
 
 **Memory Injection** (`MemoryInjectionMiddleware`):
 - Runs **before each LLM call** via `wrap_model_call()`
-- Fetches memory profile from the store
-- Injects it into the system prompt using template variables
-- Agent sees current preferences on every turn
+- Fetches unified user profile from single namespace
+- Injects it into the system prompt's `< User Profile >` section
+- Agent sees current profile on every turn
 
 **Memory Update Detection** (`PostInterruptMemoryMiddleware`):
 - **Before model generation** (`before_model`): Detects ToolMessages with `status="error"` (rejections)
-- **REJECT detection**: Extracts optional rejection message from ToolMessage content and updates triage preferences with user's feedback for better learning
-- **Agent behavior**: Agent is instructed to call Done tool immediately after receiving a rejection to end the workflow
+- **ANY tool rejection**: Extracts optional rejection message and updates user profile
+- **Update logic**: Tool-specific feedback guides LLM on which profile section to update
+- **Agent behavior**: Agent is instructed to call Done tool immediately after receiving any rejection
 
 **Memory Update Process**:
 1. Build prompt with current memory profile + user's feedback (reject reason)
@@ -295,8 +305,8 @@ examples/personal_assistant/
     │
     ├── middleware/
     │   ├── __init__.py
-    │   ├── email_memory_injection.py # Memory injection into system prompts
-    │   ├── email_post_interrupt.py   # Post-interrupt memory updates
+    │   ├── email_memory_injection.py # Memory injection from unified profile
+    │   ├── email_post_interrupt.py   # Profile updates on ANY tool rejection
     │   └── email_genui.py            # GenUI integration for tool visualization
     │
     └── tools/

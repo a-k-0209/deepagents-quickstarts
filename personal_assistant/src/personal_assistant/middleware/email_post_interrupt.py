@@ -9,14 +9,15 @@ from ..utils import aupdate_memory, update_memory
 
 
 class PostInterruptMemoryMiddleware(AgentMiddleware):
-    """Middleware for updating memory when user rejects tool calls.
+    """Middleware for updating memory when user rejects ANY tool call.
 
     This middleware detects when tool calls are rejected (never executed) and
-    updates triage preferences to learn which emails should not trigger responses.
+    updates the user profile to learn from the rejection feedback.
 
     Memory updates:
-    - reject write_email: Updates triage_preferences
-    - reject schedule_meeting: Updates triage_preferences
+    - reject write_email: Updates user_profile (triage and/or response style)
+    - reject schedule_meeting: Updates user_profile (triage and/or scheduling)
+    - reject Question: Updates user_profile (triage and/or response style)
     - approve: No memory update
 
     Args:
@@ -29,8 +30,8 @@ class PostInterruptMemoryMiddleware(AgentMiddleware):
 
     def __init__(self, store: BaseStore):
         self.store = store
-        # Track which tools should trigger memory updates on reject
-        self.interrupt_tools = {"write_email", "schedule_meeting"}
+        # Track ALL interrupt tools (not just specific ones)
+        self.interrupt_tools = {"write_email", "schedule_meeting", "Question"}
         # Track which tool calls we've already processed (to avoid duplicates)
         self._processed_tool_calls = set()
 
@@ -133,7 +134,7 @@ class PostInterruptMemoryMiddleware(AgentMiddleware):
     def _update_memory_for_reject(
         self, tool_name: str, original_args: dict, rejection_message: str, state, runtime
     ):
-        """Update triage preferences when user rejects a tool call.
+        """Update user profile when user rejects a tool call.
 
         Args:
             tool_name: Name of the tool that was rejected
@@ -142,15 +143,32 @@ class PostInterruptMemoryMiddleware(AgentMiddleware):
             state: Agent state containing messages
             runtime: Runtime context
         """
-        namespace = ("email_assistant", "triage_preferences")
+        namespace = ("email_assistant", "user_profile")
 
         # Create feedback based on tool type
         if tool_name == "write_email":
-            feedback = "The user rejected the email draft. That means they did not want to respond to the email. Update the triage preferences to ensure emails of this type are not classified as respond."
+            feedback = (
+                "The user rejected the email draft, meaning they did not want to respond to this email. "
+                "Update the User Profile to refine triage criteria (which emails warrant responses) and/or "
+                "response style preferences based on what was wrong with the draft."
+            )
         elif tool_name == "schedule_meeting":
-            feedback = "The user rejected the calendar meeting draft. That means they did not want to schedule a meeting for this email. Update the triage preferences to ensure emails of this type are not classified as respond."
+            feedback = (
+                "The user rejected the meeting invitation, meaning they did not want to schedule this meeting. "
+                "Update the User Profile to refine triage criteria (which meeting requests warrant scheduling) and/or "
+                "meeting scheduling preferences based on what was wrong with the invitation."
+            )
+        elif tool_name == "Question":
+            feedback = (
+                "The user rejected the clarification question, meaning they did not want to ask this question. "
+                "Update the User Profile to refine when questions should be asked or how they should be phrased."
+            )
         else:
-            return  # No memory update for other tools
+            # Generic fallback for any future interrupt tools
+            feedback = (
+                f"The user rejected the {tool_name} tool call. "
+                "Update the User Profile to learn from this feedback and avoid similar rejections in the future."
+            )
 
         # Get conversation context for memory update from state
         messages = state.get("messages", [])
@@ -221,15 +239,32 @@ class PostInterruptMemoryMiddleware(AgentMiddleware):
             state: Agent state containing messages
             runtime: Runtime context
         """
-        namespace = ("email_assistant", "triage_preferences")
+        namespace = ("email_assistant", "user_profile")
 
         # Create feedback based on tool type
         if tool_name == "write_email":
-            feedback = "The user rejected the email draft. That means they did not want to respond to the email. Update the triage preferences to ensure emails of this type are not classified as respond."
+            feedback = (
+                "The user rejected the email draft, meaning they did not want to respond to this email. "
+                "Update the User Profile to refine triage criteria (which emails warrant responses) and/or "
+                "response style preferences based on what was wrong with the draft."
+            )
         elif tool_name == "schedule_meeting":
-            feedback = "The user rejected the calendar meeting draft. That means they did not want to schedule a meeting for this email. Update the triage preferences to ensure emails of this type are not classified as respond."
+            feedback = (
+                "The user rejected the meeting invitation, meaning they did not want to schedule this meeting. "
+                "Update the User Profile to refine triage criteria (which meeting requests warrant scheduling) and/or "
+                "meeting scheduling preferences based on what was wrong with the invitation."
+            )
+        elif tool_name == "Question":
+            feedback = (
+                "The user rejected the clarification question, meaning they did not want to ask this question. "
+                "Update the User Profile to refine when questions should be asked or how they should be phrased."
+            )
         else:
-            return  # No memory update for other tools
+            # Generic fallback for any future interrupt tools
+            feedback = (
+                f"The user rejected the {tool_name} tool call. "
+                "Update the User Profile to learn from this feedback and avoid similar rejections in the future."
+            )
 
         # Get conversation context for memory update from state
         messages = state.get("messages", [])
