@@ -5,11 +5,13 @@ for conducting web research with strategic thinking and context management.
 """
 
 from datetime import datetime
-
+from pprint import pprint
 from langchain.chat_models import init_chat_model
 from langchain_google_genai import ChatGoogleGenerativeAI
 from deepagents import create_deep_agent
-
+from dotenv import load_dotenv
+load_dotenv()
+ 
 from research_agent.prompts import (
     RESEARCHER_INSTRUCTIONS,
     RESEARCH_WORKFLOW_INSTRUCTIONS,
@@ -26,15 +28,18 @@ current_date = datetime.now().strftime("%Y-%m-%d")
 
 # Combine orchestrator instructions (RESEARCHER_INSTRUCTIONS only for sub-agents)
 INSTRUCTIONS = (
+    # 1. How research should be conducted
     RESEARCH_WORKFLOW_INSTRUCTIONS
     + "\n\n"
     + "=" * 80
     + "\n\n"
+    # 3. How sub-agents should be used
     + SUBAGENT_DELEGATION_INSTRUCTIONS.format(
         max_concurrent_research_units=max_concurrent_research_units,
         max_researcher_iterations=max_researcher_iterations,
     )
 )
+
 
 # Create research sub-agent
 research_sub_agent = {
@@ -44,11 +49,12 @@ research_sub_agent = {
     "tools": [tavily_search, think_tool],
 }
 
-# Model Gemini 3 
-# model = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", temperature=0.0)
+from langchain_openai import ChatOpenAI
 
-# Model Claude 4.5
-model = init_chat_model(model="anthropic:claude-sonnet-4-5-20250929", temperature=0.0)
+model = ChatOpenAI(
+    model="gpt-4.1-mini",
+    temperature=0.0,
+)
 
 # Create the agent
 agent = create_deep_agent(
@@ -57,3 +63,15 @@ agent = create_deep_agent(
     system_prompt=INSTRUCTIONS,
     subagents=[research_sub_agent],
 )
+
+result = agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "Build a tech radar for Fast API",
+            }
+        ],
+    }, 
+)
+pprint(result["messages"])
