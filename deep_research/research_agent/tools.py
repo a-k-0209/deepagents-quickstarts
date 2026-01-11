@@ -127,7 +127,7 @@ def write_markdown_file(filename: str, content: str) -> str:
     Returns:
         Confirmation message.
     """
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(content)
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(content)
 
     return f"Successfully wrote content to {filename}"
