@@ -131,3 +131,37 @@ def write_markdown_file(filename: str, content: str) -> str:
         file.write(content)
 
     return f"Successfully wrote content to {filename}"
+
+@tool(parse_docstring=True)
+def register_radar_entry(
+    technology: str,
+    category: str,
+    quadrant: Literal["Adopt", "Trial", "Assess", "Hold"],
+    rationale: str,
+    risks: str,
+    confidence: Literal["High", "Medium", "Low"],
+    re_evaluation_trigger: str,
+) -> str:
+    """
+    Register a single Tech Radar decision entry.
+
+    Args:
+        technology: The name of the technology
+        category: The category of the technology
+        quadrant: The quadrant of the technology
+        rationale: The rationale for the technology
+        risks: The risks of the technology
+        confidence: The confidence level of the technology
+        re_evaluation_trigger: The re-evaluation trigger of the technology
+
+    Returns:
+        Confirmation message.
+    """
+    return (
+        f"Registered radar entry: {technology} → {quadrant} "
+        f"(confidence: {confidence})"
+        f"(re-evaluation trigger: {re_evaluation_trigger})"
+        f"(rationale: {rationale})"
+        f"(risks: {risks})"
+    )
+

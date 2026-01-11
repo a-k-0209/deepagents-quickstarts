@@ -17,7 +17,7 @@ from research_agent.prompts import (
     RESEARCH_WORKFLOW_INSTRUCTIONS,
     SUBAGENT_DELEGATION_INSTRUCTIONS,
 )
-from research_agent.tools import tavily_search, think_tool, write_markdown_file
+from research_agent.tools import tavily_search, think_tool, write_markdown_file, register_radar_entry
 
 # Limits
 max_concurrent_research_units = 3
@@ -30,7 +30,6 @@ current_date = datetime.now().strftime("%Y-%m-%d")
 INSTRUCTIONS = (
     # 1. How research should be conducted
     RESEARCH_WORKFLOW_INSTRUCTIONS 
-    + "\n\n"
     + RESEARCHER_INSTRUCTIONS
     + "\n\n"
     + "=" * 80
@@ -48,7 +47,7 @@ research_sub_agent = {
     "name": "research-agent",
     "description": "Delegate research to the sub-agent researcher. Only give this researcher one topic at a time.",
     "system_prompt": RESEARCHER_INSTRUCTIONS.format(date=current_date),
-    "tools": [tavily_search, think_tool],
+    "tools": [tavily_search, think_tool, register_radar_entry],
 }
 
 from langchain_openai import ChatOpenAI
@@ -61,7 +60,7 @@ model = ChatOpenAI(
 # Create the agent
 agent = create_deep_agent(
     model=model,
-    tools=[tavily_search, think_tool, write_markdown_file],
+    tools=[tavily_search, think_tool, write_markdown_file, register_radar_entry],
     system_prompt=INSTRUCTIONS,
     subagents=[research_sub_agent],
 )

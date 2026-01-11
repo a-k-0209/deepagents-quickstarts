@@ -121,6 +121,7 @@ When concluding Phase 1:
 - Cite sources inline using [1], [2], [3]
 - Include a ### Sources section with titles and URLs
 - Focus on facts, adoption signals, risks, and ecosystem maturity
+- Each Tech Radar MUST contain at least one entry in Adopt, Trial, and Assess. Hold may be empty only if justified.
 </Research Output Expectations>
 
 ================================================================================
@@ -139,13 +140,13 @@ into Tech Radar quadrants based on:
 - Risk
 - Strategic value
 
-## Required Final Tech Radar Output Structure (MANDATORY)
+## Required FinalOutput Structure (MANDATORY)
 
 ### 1. Radar Scope
 Clearly define what domain this radar applies to.
 
 ### 2. Radar Criteria
-Explain how decisions were made (signals considered, trade-offs evaluated).
+Explain how decisions were made (signals considered, trade-offs evaluated). 
 
 ### 3. Radar Entries (Grouped by Quadrant)
 
