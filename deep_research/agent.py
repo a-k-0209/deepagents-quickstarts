@@ -29,7 +29,9 @@ current_date = datetime.now().strftime("%Y-%m-%d")
 # Combine orchestrator instructions (RESEARCHER_INSTRUCTIONS only for sub-agents)
 INSTRUCTIONS = (
     # 1. How research should be conducted
-    RESEARCH_WORKFLOW_INSTRUCTIONS
+    RESEARCH_WORKFLOW_INSTRUCTIONS 
+    + "\n\n"
+    + RESEARCHER_INSTRUCTIONS
     + "\n\n"
     + "=" * 80
     + "\n\n"

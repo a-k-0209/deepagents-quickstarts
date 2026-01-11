@@ -139,7 +139,7 @@ into Tech Radar quadrants based on:
 - Risk
 - Strategic value
 
-## Required Output Structure (MANDATORY)
+## Required Final Tech Radar Output Structure (MANDATORY)
 
 ### 1. Radar Scope
 Clearly define what domain this radar applies to.
