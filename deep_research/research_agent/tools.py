@@ -114,3 +114,20 @@ def think_tool(reflection: str) -> str:
         Confirmation that reflection was recorded for decision-making
     """
     return f"Reflection recorded: {reflection}"
+
+
+@tool(parse_docstring=True)
+def write_markdown_file(filename: str, content: str) -> str:
+    """Write content to a markdown file.
+
+    Args:
+        filename: Name of the markdown file to write.
+        content: Markdown content to write into the file.
+
+    Returns:
+        Confirmation message.
+    """
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    return f"Successfully wrote content to {filename}"

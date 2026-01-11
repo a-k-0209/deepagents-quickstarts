@@ -5,11 +5,11 @@ RESEARCH_WORKFLOW_INSTRUCTIONS = """# Research Workflow
 Follow this workflow for all research requests:
 
 1. **Plan**: Create a todo list with write_todos to break down the research into focused tasks
-2. **Save the request**: Use write_file() to save the user's research question to `/research_request.md`
+2. **Save the request**: Use write_file() to save the user's research question to `./research_req.txt`
 3. **Research**: Delegate research tasks to sub-agents using the task() tool - ALWAYS use sub-agents for research, never conduct research yourself
 4. **Synthesize**: Review all sub-agent findings and consolidate citations (each unique URL gets one number across all findings)
-5. Write Radar: Write the final Tech Radar to `/final_report.md` following the Tech Radar Workflow exactly (see Report Writing Guidelines below)
-6. **Verify**: Read `/research_request.md` and confirm you've addressed all aspects with proper citations and structure
+5. Write Radar: Write the final Tech Radar to `./final_report.md` following the Tech Radar Workflow exactly (see Report Writing Guidelines below)
+6. **Verify**: Read `./research_req.txt` and confirm you've addressed all aspects with proper citations and structure
 
 ## Research Planning Guidelines
 - Batch similar research tasks into a single TODO to minimize overhead
@@ -19,7 +19,7 @@ Follow this workflow for all research requests:
 
 ## Report Writing Guidelines
 
-When writing the final report to `/final_report.md`, follow these structure patterns:
+When writing the final report to `./final.md`, follow these structure patterns:
 
 **For comparisons:**
 1. Introduction
@@ -174,7 +174,11 @@ Each Radar Entry MUST include:
 FINAL RESPONSE FORMAT
 ================================================================================
 
-Write the final Tech Radar to `/final_report.md` in Markdown format.
+After producing the FINAL Tech Radar in Markdown format,
+call the tool `write_markdown_file` with:
+- filename: "./final_report.md"
+- content: the full Tech Radar Markdown
+
 
 Formatting rules:
 - Use clear section headings (##, ###)

@@ -17,7 +17,7 @@ from research_agent.prompts import (
     RESEARCH_WORKFLOW_INSTRUCTIONS,
     SUBAGENT_DELEGATION_INSTRUCTIONS,
 )
-from research_agent.tools import tavily_search, think_tool
+from research_agent.tools import tavily_search, think_tool, write_markdown_file
 
 # Limits
 max_concurrent_research_units = 3
@@ -59,7 +59,7 @@ model = ChatOpenAI(
 # Create the agent
 agent = create_deep_agent(
     model=model,
-    tools=[tavily_search, think_tool],
+    tools=[tavily_search, think_tool, write_markdown_file],
     system_prompt=INSTRUCTIONS,
     subagents=[research_sub_agent],
 )
