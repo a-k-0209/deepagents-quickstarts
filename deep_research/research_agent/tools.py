@@ -50,7 +50,7 @@ def tavily_search(
     Args:
         query: Search query to execute
         max_results: Maximum number of results to return (default: 1)
-        topic: Topic filter - 'general', 'news', or 'finance' (default: 'general')
+        topic: Topic filter - 'general', 'news', or 'finance' (default: technology')
 
     Returns:
         Formatted search results with full webpage content

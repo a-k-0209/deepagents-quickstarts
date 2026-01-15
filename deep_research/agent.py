@@ -6,8 +6,6 @@ for conducting web research with strategic thinking and context management.
 
 from datetime import datetime
 from pprint import pprint
-from langchain.chat_models import init_chat_model
-from langchain_google_genai import ChatGoogleGenerativeAI
 from deepagents import create_deep_agent
 from dotenv import load_dotenv
 load_dotenv()
@@ -60,7 +58,7 @@ model = ChatOpenAI(
 # Create the agent
 agent = create_deep_agent(
     model=model,
-    tools=[tavily_search, think_tool, write_markdown_file, register_radar_entry],
+    tools=[write_markdown_file],
     system_prompt=INSTRUCTIONS,
     subagents=[research_sub_agent],
 )
@@ -76,3 +74,5 @@ result = agent.invoke(
     }, 
 )
 pprint(result["messages"])
+
+# Build a tech radar for the best ai tools for 2025
